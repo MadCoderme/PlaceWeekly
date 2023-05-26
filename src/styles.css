@@ -1,0 +1,46 @@
+body {
+  overflow: hidden;
+  font-family: "Open Sans", sans-serif;
+}
+
+.App {
+  font-family: sans-serif;
+  text-align: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f2f2f2;
+  font-family: "Open Sans", sans-serif !important;
+}
+
+.canvas {
+  image-rendering: pixelated;
+}
+
+.pallete-colors {
+  display: flex;
+  width: 80%;
+  overflow-x: scroll;
+  padding-bottom: 4px;
+}
+
+.pallete-colors::-webkit-scrollbar {
+  width: 5px;
+  height: 4px;
+  background-color: #aaa;
+  border-radius: 5px;
+}
+
+.pallete-colors::-webkit-scrollbar-thumb {
+  background-color: rgb(80, 79, 79);
+  border-radius: 5px;
+}
+
+.colors {
+  width: 20px;
+  height: 20px;
+}
+.colors:hover {
+  height: 16px;
+  width: 16px;
+  border: 2px solid black;
+}
