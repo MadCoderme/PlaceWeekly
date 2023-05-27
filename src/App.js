@@ -13,9 +13,17 @@ import {
   onValue,
 } from "firebase/database";
 import { useTimer } from "react-timer-hook";
-import config from "./config.json";
 
-const firebaseConfig = config;
+const firebaseConfig = {
+  apiKey: process.env.firebaseApiKey,
+  authDomain: "placeweekly.firebaseapp.com",
+  databaseURL: process.env.firebaseDatabaseURL,
+  projectId: "placeweekly",
+  storageBucket: "placeweekly.appspot.com",
+  messagingSenderId: "832136398311",
+  appId: process.env.firebaseAppId,
+  measurementId: "G-CPY1C90FWK",
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
