@@ -10,7 +10,7 @@ import {
   child,
   update,
   increment,
-  onValue
+  onValue,
 } from "firebase/database";
 import { useTimer } from "react-timer-hook";
 import config from "./config.json";
@@ -22,22 +22,29 @@ const db = getDatabase(app);
 //const analytics = getAnalytics(app);
 
 const colors = [
-  "black",
-  "grey",
-  "red",
-  "yellow",
-  "red",
-  "orange",
-  "blue",
-  "teal",
-  "green"
+  "#FFFFFF",
+  "#E4E4E4",
+  "#888888",
+  "#222222",
+  "#FFA7D1",
+  "#E50000",
+  "#E59500",
+  "#A06A42",
+  "#E5D900",
+  "#94E044",
+  "#02BE01",
+  "#00D3DD",
+  "#0083C7",
+  "#0000EA",
+  "#CF6EE4",
+  "#820080",
 ];
 
 export default function App() {
   const [zoomState, setZoomState] = useState({
     offsetX: 0,
     offsetY: 0,
-    scale: 1
+    scale: 1,
   });
   const [user, setUser] = useState(null);
   const [ip, setIp] = useState("");
@@ -55,7 +62,7 @@ export default function App() {
     start,
     pause,
     resume,
-    restart
+    restart,
   } = useTimer(0);
 
   useEffect(() => {
@@ -82,12 +89,12 @@ export default function App() {
 
   useEffect(() => {
     update(ref(db, "currentUsers"), {
-      num: increment(1)
+      num: increment(1),
     });
 
     window.addEventListener("beforeunload", function (e) {
       update(ref(db, "currentUsers"), {
-        num: increment(-1)
+        num: increment(-1),
       });
     });
   }, []);
@@ -152,7 +159,7 @@ export default function App() {
     setZoomState({
       offsetX: ReactZoomPanPinchRef.state.positionX,
       offsetY: ReactZoomPanPinchRef.state.positionY,
-      scale: ReactZoomPanPinchRef.state.scale
+      scale: ReactZoomPanPinchRef.state.scale,
     });
   };
 
@@ -160,7 +167,7 @@ export default function App() {
     setZoomState({
       offsetX: ReactZoomPanPinchRef.state.positionX,
       offsetY: ReactZoomPanPinchRef.state.positionY,
-      scale: ReactZoomPanPinchRef.state.scale
+      scale: ReactZoomPanPinchRef.state.scale,
     });
   };
 
@@ -234,8 +241,12 @@ export default function App() {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    let colorData = ctx.getImageData(selected.x * 10, selected.y * 10, 1, 1)
-      .data;
+    let colorData = ctx.getImageData(
+      selected.x * 10,
+      selected.y * 10,
+      1,
+      1
+    ).data;
     let color =
       "rgb(" + colorData[0] + ", " + colorData[1] + ", " + colorData[2] + ")";
 
@@ -245,7 +256,7 @@ export default function App() {
       color,
       user,
       ip,
-      time
+      time,
     });
 
     set(ref(db, "waiting/" + ip.replaceAll(".", " ")), +new Date() + 60 * 1000);
@@ -305,7 +316,7 @@ export default function App() {
       <TransformWrapper
         style={{
           height: "100vh",
-          width: "100vw"
+          width: "100vw",
         }}
         onZoom={zoom}
         onPanning={pann}
@@ -316,7 +327,7 @@ export default function App() {
           <div
             style={{
               height: "100vh",
-              width: "100vw"
+              width: "100vw",
             }}
             id="wrapper"
           >
@@ -336,7 +347,7 @@ export default function App() {
             position: "absolute",
             bottom: 20,
             alignSelf: "center",
-            background: "#fff",
+            background: "#ff4500",
             minWidth: 200,
             width: "60vw",
             left: "20vw",
@@ -346,7 +357,7 @@ export default function App() {
             paddingLeft: 20,
             paddingRight: 20,
             borderRadius: 20,
-            border: "2px solid #FF4500"
+            border: "2px solid #FF4500",
           }}
           id="pallete"
         >
@@ -359,7 +370,7 @@ export default function App() {
                 textAlign: "left",
                 cursor: "pointer",
                 textDecoration: "underline",
-                color: "#FF4500"
+                color: "#FFF",
               }}
             >
               More
@@ -369,7 +380,8 @@ export default function App() {
                 fontSize: 12,
                 marginBottom: 15,
                 marginTop: 5,
-                textAlign: "left"
+                textAlign: "left",
+                color: "#fff",
               }}
             >
               Placed by <b>{activePixel?.user}</b>{" "}
@@ -383,15 +395,15 @@ export default function App() {
                 key={i + v}
                 style={{
                   background: i,
-                  borderRadius: 10,
-                  marginRight: 10
+                  borderRadius: 20,
+                  marginRight: 10,
                 }}
                 className="colors"
                 onClick={() => updateSelected(i)}
               >
                 <div
                   style={{
-                    width: 20
+                    width: 20,
                   }}
                 ></div>
               </div>
@@ -403,14 +415,15 @@ export default function App() {
             style={{
               position: "absolute",
               right: 15,
-              top: "25%",
+              top: "30%",
               padding: 7,
               paddingRight: 12,
               paddingLeft: 12,
               border: "none",
               borderRadius: 15,
-              backgroundColor: "#FF4500",
-              color: "white"
+              backgroundColor: "#FFF",
+              color: "black",
+              cursor: isRunning ? "not-allowed" : "pointer",
             }}
           >
             {isRunning ? minutes + ":" + seconds : "Place"}
