@@ -60,6 +60,8 @@ export default function App() {
   const [prevColor, setPrevColor] = useState(null);
   const [selected, setSelected] = useState({ x: 0, y: 0 });
   const [activePixel, setActivePixel] = useState({});
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [optionsVisible, setOptionsVisible] = useState(false);
 
   const {
     seconds,
@@ -80,8 +82,8 @@ export default function App() {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, 100, 100);
 
-    const starCountRef = ref(db, "pixels/");
-    onValue(starCountRef, (snapshot) => {
+    const pxlsRef = ref(db, "pixels/");
+    onValue(pxlsRef, (snapshot) => {
       const data = snapshot.val() ?? {};
       Object.keys(data).forEach((el) => {
         ctx.fillStyle = data[el]?.color;
@@ -93,12 +95,18 @@ export default function App() {
         );
       });
     });
+
+    const usersRef = ref(db, "currentUsers/");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() ?? { num: 0 };
+      setActiveUsers(data?.num);
+    });
   }, []);
 
   useEffect(() => {
-    update(ref(db, "currentUsers"), {
-      num: increment(1),
-    });
+    // update(ref(db, "currentUsers"), {
+    //   num: increment(1),
+    // });
 
     window.addEventListener("beforeunload", function (e) {
       update(ref(db, "currentUsers"), {
@@ -118,14 +126,7 @@ export default function App() {
       let u = localStorage.getItem("user");
       if (u) setUser(u);
       else {
-        let inp = prompt("Write a User Name");
-        if (inp) {
-          localStorage.setItem("user", inp.substring(0, 20));
-          setUser(inp);
-        } else {
-          localStorage.setItem("user", "Anonymous");
-          setUser("Anonymous");
-        }
+        getUsername();
       }
     }
   }, [user]);
@@ -143,6 +144,17 @@ export default function App() {
       );
     }
   }, [selected]);
+
+  function getUsername() {
+    let inp = prompt("Write a User Name");
+    if (inp) {
+      localStorage.setItem("user", inp.substring(0, 20));
+      setUser(inp);
+    } else {
+      localStorage.setItem("user", "Anonymous");
+      setUser("Anonymous");
+    }
+  }
 
   function storeIp(addr) {
     setIp(addr.ip);
@@ -291,6 +303,13 @@ export default function App() {
     }
   };
 
+  function download() {
+    let link = document.createElement("a");
+    link.download = "placeweeks.png";
+    link.href = document.getElementById("canvas").toDataURL();
+    link.click();
+  }
+
   function timeAgo(value) {
     const seconds = Math.floor(
       (new Date().getTime() - new Date(value).getTime()) / 1000
@@ -435,6 +454,81 @@ export default function App() {
             }}
           >
             {isRunning ? minutes + ":" + seconds : "Place"}
+          </button>
+        </div>
+      ) : null}
+
+      <p
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 20,
+          padding: 15,
+          background: "#ff4500",
+          zIndex: 5,
+          borderRadius: 25,
+          fontSize: 14,
+          color: "white",
+        }}
+        id="user-count"
+      >
+        <b>{activeUsers}</b> Placers
+      </p>
+
+      <button
+        style={{
+          position: "absolute",
+          top: 30,
+          left: 30,
+          padding: 4,
+          paddingLeft: 15,
+          paddingRight: 15,
+          background: "#ff4500",
+          zIndex: 5,
+          borderRadius: 25,
+          fontSize: 21,
+          color: "white",
+          borderWidth: 0,
+        }}
+        id="more-btn"
+        onClick={() => setOptionsVisible((prev) => !prev)}
+      >
+        &#8942;
+      </button>
+      {optionsVisible ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 70,
+            left: 30,
+            padding: 6,
+            paddingBottom: 10,
+            background: "#fff",
+            zIndex: 5,
+            borderRadius: 10,
+            fontSize: 21,
+            borderWidth: 0,
+          }}
+          id="more-options"
+        >
+          <button
+            style={{
+              borderWidth: 0,
+            }}
+            className="option-btn"
+            onClick={() => getUsername()}
+          >
+            Rename
+          </button>
+          <hr />
+          <button
+            style={{
+              borderWidth: 0,
+            }}
+            className="option-btn"
+            onClick={() => download()}
+          >
+            Download Canvas
           </button>
         </div>
       ) : null}

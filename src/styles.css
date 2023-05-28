@@ -41,3 +41,32 @@ body {
   border-radius: 25px;
   border: 2px solid black;
 }
+
+#more-btn:active {
+  opacity: 0.8;
+}
+
+#more-options {
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.option-btn {
+  background-color: transparent;
+  padding: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  text-align: left;
+}
+
+.option-btn:active {
+  background: #f2f2f2;
+}
