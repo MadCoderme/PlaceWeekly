@@ -104,9 +104,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // update(ref(db, "currentUsers"), {
-    //   num: increment(1),
-    // });
+    update(ref(db, "currentUsers"), {
+      num: increment(1),
+    });
 
     window.addEventListener("beforeunload", function (e) {
       update(ref(db, "currentUsers"), {
