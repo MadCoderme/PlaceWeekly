@@ -87,12 +87,7 @@ export default function App() {
       const data = snapshot.val() ?? {};
       Object.keys(data).forEach((el) => {
         ctx.fillStyle = data[el]?.color;
-        ctx.fillRect(
-          10 * (el - 10 * parseInt(el / 10)),
-          10 * parseInt(el / 10),
-          10,
-          10
-        );
+        ctx.fillRect(el - 100 * parseInt(el / 100), parseInt(el / 100), 1, 1);
       });
     });
 
@@ -133,7 +128,7 @@ export default function App() {
 
   useEffect(() => {
     if (selected) {
-      get(child(ref(db), "pixels/" + (selected.x + selected.y * 10))).then(
+      get(child(ref(db), "pixels/" + (selected.x + selected.y * 100))).then(
         (snapshot) => {
           if (snapshot.exists()) {
             setActivePixel(snapshot.val());
@@ -200,17 +195,17 @@ export default function App() {
     const ny = event.clientY - rect.top;
 
     let scale = zoomState?.scale ?? 1;
-    let x = Math.floor(nx / (10 * scale));
-    let y = Math.floor(ny / (10 * scale));
+    let x = Math.floor(nx / (1 * scale));
+    let y = Math.floor(ny / (1 * scale));
 
     const ctx = canvas.getContext("2d");
 
     if (prevColor) {
       ctx.fillStyle = prevColor;
-      ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+      ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
     }
 
-    let prevColorData = ctx.getImageData(x * 10, y * 10, 1, 1).data;
+    let prevColorData = ctx.getImageData(x * 1, y * 1, 1, 1).data;
     setPrevColor(
       "rgb(" +
         prevColorData[0] +
@@ -223,7 +218,7 @@ export default function App() {
 
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = "white";
-    ctx.fillRect(x * 10, y * 10, 10, 10);
+    ctx.fillRect(x * 1, y * 1, 1, 1);
     ctx.globalAlpha = 1;
 
     setPalleteShown(true);
@@ -236,7 +231,7 @@ export default function App() {
     const ctx = canvas.getContext("2d");
 
     ctx.fillStyle = i;
-    ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+    ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
   };
 
   const setColor = () => {
@@ -261,25 +256,21 @@ export default function App() {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    let colorData = ctx.getImageData(
-      selected.x * 10,
-      selected.y * 10,
-      1,
-      1
-    ).data;
+    let colorData = ctx.getImageData(selected.x * 1, selected.y * 1, 1, 1).data;
     let color =
       "rgb(" + colorData[0] + ", " + colorData[1] + ", " + colorData[2] + ")";
 
     let time = +new Date();
 
-    set(ref(db, "pixels/" + (selected.y * 10 + selected.x)), {
+    set(ref(db, "pixels/" + (selected.y * 100 + selected.x)), {
       color,
       user,
       ip,
       time,
+      editCount: increment(1),
     });
 
-    set(ref(db, "waiting/" + ip.replaceAll(".", " ")), +new Date() + 60 * 1000);
+    set(ref(db, "waiting/" + ip.replaceAll(".", " ")), +new Date() + 60 * 100);
 
     setPrevColor(null);
     setPalleteShown(false);
@@ -298,7 +289,7 @@ export default function App() {
       setActivePixel({});
       if (prevColor) {
         ctx.fillStyle = prevColor;
-        ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+        ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
       }
     }
   };
@@ -347,8 +338,8 @@ export default function App() {
         }}
         onZoom={zoom}
         onPanning={pann}
-        maxScale={5}
-        minScale={0.3}
+        maxScale={18}
+        minScale={0.8}
       >
         <TransformComponent>
           <div
@@ -413,6 +404,10 @@ export default function App() {
             >
               Placed by <b>{activePixel?.user}</b>{" "}
               {activePixel?.time ? timeAgo(activePixel?.time) + " ago" : null}
+              <br />
+              {activePixel?.editCount
+                ? "Edited " + activePixel?.editCount + " time(s)"
+                : null}
             </p>
           </details>
 
