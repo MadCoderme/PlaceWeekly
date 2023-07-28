@@ -10,34 +10,49 @@ import {
   child,
   update,
   increment,
-  onValue
+  onValue,
 } from "firebase/database";
 import { useTimer } from "react-timer-hook";
-import config from "./config.json";
 
-const firebaseConfig = config;
+const firebaseConfig = {
+  apiKey: process.env.firebaseApiKey,
+  authDomain: "placeweekly.firebaseapp.com",
+  databaseURL: process.env.firebaseDatabaseURL,
+  projectId: "placeweekly",
+  storageBucket: "placeweekly.appspot.com",
+  messagingSenderId: "832136398311",
+  appId: process.env.firebaseAppId,
+  measurementId: "G-CPY1C90FWK",
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 //const analytics = getAnalytics(app);
 
 const colors = [
-  "black",
-  "grey",
-  "red",
-  "yellow",
-  "red",
-  "orange",
-  "blue",
-  "teal",
-  "green"
+  "#FFFFFF",
+  "#E4E4E4",
+  "#888888",
+  "#222222",
+  "#FFA7D1",
+  "#E50000",
+  "#E59500",
+  "#A06A42",
+  "#E5D900",
+  "#94E044",
+  "#02BE01",
+  "#00D3DD",
+  "#0083C7",
+  "#0000EA",
+  "#CF6EE4",
+  "#820080",
 ];
 
 export default function App() {
   const [zoomState, setZoomState] = useState({
     offsetX: 0,
     offsetY: 0,
-    scale: 1
+    scale: 1,
   });
   const [user, setUser] = useState(null);
   const [ip, setIp] = useState("");
@@ -45,6 +60,8 @@ export default function App() {
   const [prevColor, setPrevColor] = useState(null);
   const [selected, setSelected] = useState({ x: 0, y: 0 });
   const [activePixel, setActivePixel] = useState({});
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [optionsVisible, setOptionsVisible] = useState(false);
 
   const {
     seconds,
@@ -55,7 +72,7 @@ export default function App() {
     start,
     pause,
     resume,
-    restart
+    restart,
   } = useTimer(0);
 
   useEffect(() => {
@@ -65,29 +82,30 @@ export default function App() {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, 100, 100);
 
-    const starCountRef = ref(db, "pixels/");
-    onValue(starCountRef, (snapshot) => {
+    const pxlsRef = ref(db, "pixels/");
+    onValue(pxlsRef, (snapshot) => {
       const data = snapshot.val() ?? {};
       Object.keys(data).forEach((el) => {
         ctx.fillStyle = data[el]?.color;
-        ctx.fillRect(
-          10 * (el - 10 * parseInt(el / 10)),
-          10 * parseInt(el / 10),
-          10,
-          10
-        );
+        ctx.fillRect(el - 100 * parseInt(el / 100), parseInt(el / 100), 1, 1);
       });
+    });
+
+    const usersRef = ref(db, "currentUsers/");
+    onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() ?? { num: 0 };
+      setActiveUsers(data?.num);
     });
   }, []);
 
   useEffect(() => {
     update(ref(db, "currentUsers"), {
-      num: increment(1)
+      num: increment(1),
     });
 
     window.addEventListener("beforeunload", function (e) {
       update(ref(db, "currentUsers"), {
-        num: increment(-1)
+        num: increment(-1),
       });
     });
   }, []);
@@ -103,21 +121,14 @@ export default function App() {
       let u = localStorage.getItem("user");
       if (u) setUser(u);
       else {
-        let inp = prompt("Write a User Name");
-        if (inp) {
-          localStorage.setItem("user", inp.substring(0, 20));
-          setUser(inp);
-        } else {
-          localStorage.setItem("user", "Anonymous");
-          setUser("Anonymous");
-        }
+        getUsername();
       }
     }
   }, [user]);
 
   useEffect(() => {
     if (selected) {
-      get(child(ref(db), "pixels/" + (selected.x + selected.y * 10))).then(
+      get(child(ref(db), "pixels/" + (selected.x + selected.y * 100))).then(
         (snapshot) => {
           if (snapshot.exists()) {
             setActivePixel(snapshot.val());
@@ -128,6 +139,17 @@ export default function App() {
       );
     }
   }, [selected]);
+
+  function getUsername() {
+    let inp = prompt("Write a User Name");
+    if (inp) {
+      localStorage.setItem("user", inp.substring(0, 20));
+      setUser(inp);
+    } else {
+      localStorage.setItem("user", "Anonymous");
+      setUser("Anonymous");
+    }
+  }
 
   function storeIp(addr) {
     setIp(addr.ip);
@@ -152,7 +174,7 @@ export default function App() {
     setZoomState({
       offsetX: ReactZoomPanPinchRef.state.positionX,
       offsetY: ReactZoomPanPinchRef.state.positionY,
-      scale: ReactZoomPanPinchRef.state.scale
+      scale: ReactZoomPanPinchRef.state.scale,
     });
   };
 
@@ -160,7 +182,7 @@ export default function App() {
     setZoomState({
       offsetX: ReactZoomPanPinchRef.state.positionX,
       offsetY: ReactZoomPanPinchRef.state.positionY,
-      scale: ReactZoomPanPinchRef.state.scale
+      scale: ReactZoomPanPinchRef.state.scale,
     });
   };
 
@@ -173,17 +195,17 @@ export default function App() {
     const ny = event.clientY - rect.top;
 
     let scale = zoomState?.scale ?? 1;
-    let x = Math.floor(nx / (10 * scale));
-    let y = Math.floor(ny / (10 * scale));
+    let x = Math.floor(nx / (1 * scale));
+    let y = Math.floor(ny / (1 * scale));
 
     const ctx = canvas.getContext("2d");
 
     if (prevColor) {
       ctx.fillStyle = prevColor;
-      ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+      ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
     }
 
-    let prevColorData = ctx.getImageData(x * 10, y * 10, 1, 1).data;
+    let prevColorData = ctx.getImageData(x * 1, y * 1, 1, 1).data;
     setPrevColor(
       "rgb(" +
         prevColorData[0] +
@@ -196,7 +218,7 @@ export default function App() {
 
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = "white";
-    ctx.fillRect(x * 10, y * 10, 10, 10);
+    ctx.fillRect(x * 1, y * 1, 1, 1);
     ctx.globalAlpha = 1;
 
     setPalleteShown(true);
@@ -209,7 +231,7 @@ export default function App() {
     const ctx = canvas.getContext("2d");
 
     ctx.fillStyle = i;
-    ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+    ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
   };
 
   const setColor = () => {
@@ -234,21 +256,21 @@ export default function App() {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    let colorData = ctx.getImageData(selected.x * 10, selected.y * 10, 1, 1)
-      .data;
+    let colorData = ctx.getImageData(selected.x * 1, selected.y * 1, 1, 1).data;
     let color =
       "rgb(" + colorData[0] + ", " + colorData[1] + ", " + colorData[2] + ")";
 
     let time = +new Date();
 
-    set(ref(db, "pixels/" + (selected.y * 10 + selected.x)), {
+    set(ref(db, "pixels/" + (selected.y * 100 + selected.x)), {
       color,
       user,
       ip,
-      time
+      time,
+      editCount: increment(1),
     });
 
-    set(ref(db, "waiting/" + ip.replaceAll(".", " ")), +new Date() + 60 * 1000);
+    set(ref(db, "waiting/" + ip.replaceAll(".", " ")), +new Date() + 60 * 100);
 
     setPrevColor(null);
     setPalleteShown(false);
@@ -267,10 +289,17 @@ export default function App() {
       setActivePixel({});
       if (prevColor) {
         ctx.fillStyle = prevColor;
-        ctx.fillRect(selected.x * 10, selected.y * 10, 10, 10);
+        ctx.fillRect(selected.x * 1, selected.y * 1, 1, 1);
       }
     }
   };
+
+  function download() {
+    let link = document.createElement("a");
+    link.download = "placeweeks.png";
+    link.href = document.getElementById("canvas").toDataURL();
+    link.click();
+  }
 
   function timeAgo(value) {
     const seconds = Math.floor(
@@ -283,7 +312,7 @@ export default function App() {
     }
     interval = seconds / 2592000;
     if (interval > 1) {
-      return Math.floor(interval) + "m";
+      return Math.floor(interval) + "mon";
     }
     interval = seconds / 86400;
     if (interval > 1) {
@@ -305,18 +334,19 @@ export default function App() {
       <TransformWrapper
         style={{
           height: "100vh",
-          width: "100vw"
+          width: "100vw",
         }}
         onZoom={zoom}
         onPanning={pann}
-        maxScale={5}
-        minScale={0.3}
+        maxScale={18}
+        minScale={0.8}
       >
         <TransformComponent>
           <div
             style={{
               height: "100vh",
-              width: "100vw"
+              width: "100vw",
+              paddingTop: 100,
             }}
             id="wrapper"
           >
@@ -336,7 +366,7 @@ export default function App() {
             position: "absolute",
             bottom: 20,
             alignSelf: "center",
-            background: "#fff",
+            background: "#ff4500",
             minWidth: 200,
             width: "60vw",
             left: "20vw",
@@ -346,7 +376,7 @@ export default function App() {
             paddingLeft: 20,
             paddingRight: 20,
             borderRadius: 20,
-            border: "2px solid #FF4500"
+            border: "2px solid #FF4500",
           }}
           id="pallete"
         >
@@ -359,7 +389,7 @@ export default function App() {
                 textAlign: "left",
                 cursor: "pointer",
                 textDecoration: "underline",
-                color: "#FF4500"
+                color: "#FFF",
               }}
             >
               More
@@ -369,11 +399,16 @@ export default function App() {
                 fontSize: 12,
                 marginBottom: 15,
                 marginTop: 5,
-                textAlign: "left"
+                textAlign: "left",
+                color: "#fff",
               }}
             >
               Placed by <b>{activePixel?.user}</b>{" "}
               {activePixel?.time ? timeAgo(activePixel?.time) + " ago" : null}
+              <br />
+              {activePixel?.editCount
+                ? "Edited " + activePixel?.editCount + " time(s)"
+                : null}
             </p>
           </details>
 
@@ -383,15 +418,15 @@ export default function App() {
                 key={i + v}
                 style={{
                   background: i,
-                  borderRadius: 10,
-                  marginRight: 10
+                  borderRadius: 20,
+                  marginRight: 10,
                 }}
                 className="colors"
                 onClick={() => updateSelected(i)}
               >
                 <div
                   style={{
-                    width: 20
+                    width: 20,
                   }}
                 ></div>
               </div>
@@ -403,17 +438,93 @@ export default function App() {
             style={{
               position: "absolute",
               right: 15,
-              top: "25%",
+              top: "30%",
               padding: 7,
               paddingRight: 12,
               paddingLeft: 12,
               border: "none",
               borderRadius: 15,
-              backgroundColor: "#FF4500",
-              color: "white"
+              backgroundColor: "#FFF",
+              color: "black",
+              cursor: isRunning ? "not-allowed" : "pointer",
             }}
           >
             {isRunning ? minutes + ":" + seconds : "Place"}
+          </button>
+        </div>
+      ) : null}
+
+      <p
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 20,
+          padding: 15,
+          background: "#ff4500",
+          zIndex: 5,
+          borderRadius: 25,
+          fontSize: 14,
+          color: "white",
+        }}
+        id="user-count"
+      >
+        <b>{activeUsers}</b> Placers
+      </p>
+
+      <button
+        style={{
+          position: "absolute",
+          top: 30,
+          left: 30,
+          padding: 4,
+          paddingLeft: 15,
+          paddingRight: 15,
+          background: "#ff4500",
+          zIndex: 5,
+          borderRadius: 25,
+          fontSize: 21,
+          color: "white",
+          borderWidth: 0,
+        }}
+        id="more-btn"
+        onClick={() => setOptionsVisible((prev) => !prev)}
+      >
+        &#8942;
+      </button>
+      {optionsVisible ? (
+        <div
+          style={{
+            position: "absolute",
+            top: 70,
+            left: 30,
+            padding: 6,
+            paddingBottom: 10,
+            background: "#fff",
+            zIndex: 5,
+            borderRadius: 10,
+            fontSize: 21,
+            borderWidth: 0,
+          }}
+          id="more-options"
+        >
+          <button
+            style={{
+              borderWidth: 0,
+            }}
+            className="option-btn"
+            onClick={() => getUsername()}
+          >
+            Rename
+          </button>
+          <hr />
+          <button
+            style={{
+              borderWidth: 0,
+            }}
+            className="option-btn"
+            onClick={() => download()}
+          >
+            Download Canvas
           </button>
         </div>
       ) : null}

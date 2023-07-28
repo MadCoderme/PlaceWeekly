@@ -24,23 +24,49 @@ body {
 }
 
 .pallete-colors::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
   height: 4px;
-  background-color: #aaa;
+  background-color: rgb(233, 232, 232);
   border-radius: 5px;
 }
 
 .pallete-colors::-webkit-scrollbar-thumb {
-  background-color: rgb(80, 79, 79);
+  background-color: rgb(171, 170, 170);
   border-radius: 5px;
 }
 
 .colors {
-  width: 20px;
-  height: 20px;
-}
-.colors:hover {
-  height: 16px;
-  width: 16px;
+  width: 18px;
+  height: 18px;
+  border-radius: 25px;
   border: 2px solid black;
+}
+
+#more-btn:active {
+  opacity: 0.8;
+}
+
+#more-options {
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.option-btn {
+  background-color: transparent;
+  padding: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  text-align: left;
+}
+
+.option-btn:active {
+  background: #f2f2f2;
 }
