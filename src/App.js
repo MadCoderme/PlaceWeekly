@@ -312,7 +312,7 @@ export default function App() {
     }
     interval = seconds / 2592000;
     if (interval > 1) {
-      return Math.floor(interval) + "m";
+      return Math.floor(interval) + "mon";
     }
     interval = seconds / 86400;
     if (interval > 1) {
@@ -346,6 +346,7 @@ export default function App() {
             style={{
               height: "100vh",
               width: "100vw",
+              paddingTop: 100,
             }}
             id="wrapper"
           >
